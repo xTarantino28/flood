@@ -1,10 +1,22 @@
 package net.floodlightcontroller.mactracker;
-import java.util.Collection;
-import java.util.Map;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActions;
+
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructions;
+
 
 import net.floodlightcontroller.packet.Ethernet;
+import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.MacAddress;
 
 import net.floodlightcontroller.core.FloodlightContext;
@@ -17,10 +29,12 @@ import net.floodlightcontroller.core.module.IFloodlightService;
 
 
 import net.floodlightcontroller.core.IFloodlightProviderService;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.Set;
 
+import java.util.concurrent.ConcurrentSkipListSet;
+
+import org.projectfloodlight.openflow.types.OFBufferId;
+import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 public class MACTracker implements IOFMessageListener, IFloodlightModule  {
@@ -117,7 +131,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
                     sw.getId().toString());
             
 			// Mitigación: Instalar regla para dropear paquetes con la MAC falsa
-			installDropRule(sw, eth.getSourceMACAddress());
+			installDropRule(sw, eth.getSourceMACAddress().toString());
 		
         } else if (!originalMac.equals(eth.getSourceMACAddress())) {
             // La MAC es diferente de la original, podría ser un intento de spoofing
@@ -126,43 +140,72 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
                     sw.getId().toString());
             
 			 // Mitigación: Instalar regla para dropear paquetes con la MAC falsa
-			installDropRule(sw, eth.getSourceMACAddress());
+			installDropRule(sw, eth.getSourceMACAddress().toString());
         }
 
         return Command.CONTINUE;
     }
-	
-	
+
+
+
+
+    private static final String CONTROLLER_IP = "127.0.0.1";
+    private static final int CONTROLLER_PORT = 8080;
 	// Método para instalar una regla en el switch para dropear paquetes con una MAC específica
-	private void installDropRule(IOFSwitch sw, MacAddress spoofedMac) {
-		OFFactory myFactory = sw.getOFFactory();
-		Match match = myFactory.buildMatch()
-				.setExact(MatchField.ETH_SRC, spoofedMac)
-				.build();
+	private void installDropRule(IOFSwitch sw, String spoofedMac) {
+        /*OFFactory myFactory = sw.getOFFactory();
 
-		OFOxmWildcard wildcard = myFactory.oxms().ethSrcMasked(spoofedMac, MacAddress.NO_MASK);
+        Match match = myFactory.buildMatch()
+                .setExact(MatchField.ETH_SRC, spoofedMac)
+                .build();
 
-		OFAction dropAction = myFactory.actions().drop();
+        OFAction dropAction = myFactory.actions().output(OFPort.ANY, Integer.MAX_VALUE);
+        List<OFAction> actions = Collections.singletonList(dropAction);
+        OFInstruction dropInstruction = myFactory.instructions().applyActions(actions);
 
-		OFInstruction dropInstruction = myFactory.instructions().applyActions(
-				myFactory.instructions().buildActions().setActions(dropAction));
+        sw.write(myFactory.buildFlowAdd()
+                .setBufferId(OFBufferId.NO_BUFFER)
+                .setPriority(1000)
+                .setIdleTimeout(60)
+                .setMatch(match)
+                .setInstructions(Collections.singletonList(dropInstruction))
+                .setTableId(TableId.ALL)
+                .build());
 
-		OFFlowTable flowTable = myFactory.buildFlowTable()
-				.setTableId(TableId.ALL)
-				.build();
+        logger.info("Drop rule installed on switch: {} for SPOOFED MAC: {}",
+                sw.getId().toString(),
+                spoofedMac.toString());*/
 
-		sw.write(myFactory.buildFlowAdd()
-				.setBufferId(OFBufferId.NO_BUFFER)
-				.setPriority(1000)
-				.setIdleTimeout(60)
-				.setMatch(match)
-				.setInstructions(myFactory.instructions().applyActions(OFActions.empty()))
-				.setTableId(TableId.ALL)
-				.build());
+        String flowName = "drop-rule-mac-spoofing";
+        String switchDpid = sw.getId().toString();
+        try {
+            String apiUrl = String.format("http://%s:%d/wm/staticflowentrypusher/json", CONTROLLER_IP, CONTROLLER_PORT);
+            String requestBody = String.format("{\"switch\": \"%s\", \"name\": \"%s\", \"eth_src\": \"%s\", \"actions\": \"drop\"}",switchDpid, flowName, spoofedMac);
 
-		logger.info("Drop rule installed on switch: {} for SPOOFED MAC: {}",
-				sw.getId().toString(),
-				spoofedMac.toString());
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = requestBody.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Flow entry added successfully.");
+                logger.info("Drop rule installed on switch: {} for SPOOFED MAC: {}",
+                        sw.getId().toString(),
+                        spoofedMac);
+            } else {
+                System.err.println("Error adding flow entry. Response code: " + responseCode);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 	}
 	
 	
