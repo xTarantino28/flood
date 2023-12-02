@@ -98,6 +98,40 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
 
         //gateway
         addOriginalMac(MacAddress.of("fa:16:3e:81:14:f9")); //gateway hacia mi red interna
+
+
+        //controller
+        addOriginalMac(MacAddress.of("fa:16:3e:ab:b1:eb")); //controller
+
+        //interfaces de los switches menos MP link
+
+        //sw1
+        addOriginalMac(MacAddress.of("fa:16:3e:67:e5:b1"));
+        addOriginalMac(MacAddress.of("fa:16:3e:d9:cf:50"));
+        addOriginalMac(MacAddress.of("fa:16:3e:56:e2:02"));
+        addOriginalMac(MacAddress.of("fa:16:3e:0e:16:34"));
+
+        //sw2
+        addOriginalMac(MacAddress.of("fa:16:3e:ff:60:18"));
+        addOriginalMac(MacAddress.of("fa:16:3e:91:86:c9"));
+        addOriginalMac(MacAddress.of("fa:16:3e:a7:6d:d9"));
+        addOriginalMac(MacAddress.of("fa:16:3e:d6:cb:d5"));
+
+        //sw3
+        addOriginalMac(MacAddress.of("fa:16:3e:79:13:28"));
+        addOriginalMac(MacAddress.of("fa:16:3e:0e:de:a4"));
+        addOriginalMac(MacAddress.of("fa:16:3e:38:a1:1a"));
+        addOriginalMac(MacAddress.of("fa:16:3e:96:3a:1d"));
+        addOriginalMac(MacAddress.of("fa:16:3e:89:2a:85"));
+        addOriginalMac(MacAddress.of("fa:16:3e:0c:d2:31"));
+
+        //sw4
+        addOriginalMac(MacAddress.of("fa:16:3e:63:90:14"));
+        addOriginalMac(MacAddress.of("fa:16:3e:ad:b3:df"));
+        addOriginalMac(MacAddress.of("fa:16:3e:e9:81:e6"));
+        addOriginalMac(MacAddress.of("fa:16:3e:c7:f8:d8"));
+        addOriginalMac(MacAddress.of("fa:16:3e:b4:81:08"));
+        addOriginalMac(MacAddress.of("fa:16:3e:ab:20:ce"));
     }
 
     @Override
@@ -133,7 +167,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
 
         if (originalMac == null) {
             // La MAC no está en la base de datos, podría ser un intento de spoofing
-            logger.warn("Possible MAC Spoofing: {} on switch: {}",
+            logger.warn("Possible MAC Spoofing (NO DATABASE MATCH): {} on switch: {}",
                     eth.getSourceMACAddress().toString(),
                     sw.getId().toString());
             
@@ -142,7 +176,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
 		
         } else if (!originalMac.equals(eth.getSourceMACAddress())) {
             // La MAC es diferente de la original, podría ser un intento de spoofing
-            logger.warn("MAC Spoofing Detected: {} on switch: {}",
+            logger.warn("MAC Spoofing Detected (NO PACKET MATCH): {} on switch: {}",
                     eth.getSourceMACAddress().toString(),
                     sw.getId().toString());
             
