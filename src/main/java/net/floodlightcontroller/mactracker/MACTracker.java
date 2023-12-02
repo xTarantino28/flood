@@ -72,6 +72,10 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
         macAddresses = new ConcurrentSkipListSet<Long>();
         logger = LoggerFactory.getLogger(MACTracker.class);
+		// Agregar MACs originales hardcoded al HashMap en el método init
+        addOriginalMac(MacAddress.of("fa:16:3e:5c:73:86")); //cliente1 ubuntu
+        addOriginalMac(MacAddress.of("fa:16:3e:6c:ff:86")); //cliente2 ubuntu
+		addOriginalMac(MacAddress.of("fa:16:3e:39:16:d8")); //cliente3 kali
 
     }
 
@@ -80,13 +84,18 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         floodlightProvider.addOFMessageListener(OFType.PACKET_IN, this);
 
     }
+	
+	
+	// Almacena las MAC originales de los dispositivos en la red
+    private Map<Long, MacAddress> originalMacs = new HashMap<>();
+	
 
     @Override
     public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
         Ethernet eth =
                 IFloodlightProviderService.bcStore.get(cntx,
                         IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
-
+		/* ORIGINAL MACTRACKER CODE
         Long sourceMACHash = eth.getSourceMACAddress().getLong();
         if (!macAddresses.contains(sourceMACHash)) {
             macAddresses.add(sourceMACHash);
@@ -94,8 +103,87 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
                     eth.getSourceMACAddress().toString(),
                     sw.getId().toString());
         }
+        return Command.CONTINUE;*/
+		
+		
+		//MAC SPOOFING DETECTION
+		Long sourceMACHash = eth.getSourceMACAddress().getLong();
+        MacAddress originalMac = originalMacs.get(sourceMACHash);
+
+        if (originalMac == null) {
+            // La MAC no está en la base de datos, podría ser un intento de spoofing
+            logger.warn("Possible MAC Spoofing: {} on switch: {}",
+                    eth.getSourceMACAddress().toString(),
+                    sw.getId().toString());
+            
+			// Mitigación: Instalar regla para dropear paquetes con la MAC falsa
+			installDropRule(sw, eth.getSourceMACAddress());
+		
+        } else if (!originalMac.equals(eth.getSourceMACAddress())) {
+            // La MAC es diferente de la original, podría ser un intento de spoofing
+            logger.warn("MAC Spoofing Detected: {} on switch: {}",
+                    eth.getSourceMACAddress().toString(),
+                    sw.getId().toString());
+            
+			 // Mitigación: Instalar regla para dropear paquetes con la MAC falsa
+			installDropRule(sw, eth.getSourceMACAddress());
+        }
+
         return Command.CONTINUE;
     }
+	
+	
+	// Método para instalar una regla en el switch para dropear paquetes con una MAC específica
+	private void installDropRule(IOFSwitch sw, MacAddress spoofedMac) {
+		OFFactory myFactory = sw.getOFFactory();
+		Match match = myFactory.buildMatch()
+				.setExact(MatchField.ETH_SRC, spoofedMac)
+				.build();
+
+		OFOxmWildcard wildcard = myFactory.oxms().ethSrcMasked(spoofedMac, MacAddress.NO_MASK);
+
+		OFAction dropAction = myFactory.actions().drop();
+
+		OFInstruction dropInstruction = myFactory.instructions().applyActions(
+				myFactory.instructions().buildActions().setActions(dropAction));
+
+		OFFlowTable flowTable = myFactory.buildFlowTable()
+				.setTableId(TableId.ALL)
+				.build();
+
+		sw.write(myFactory.buildFlowAdd()
+				.setBufferId(OFBufferId.NO_BUFFER)
+				.setPriority(1000)
+				.setIdleTimeout(60)
+				.setMatch(match)
+				.setInstructions(myFactory.instructions().applyActions(OFActions.empty()))
+				.setTableId(TableId.ALL)
+				.build());
+
+		logger.info("Drop rule installed on switch: {} for SPOOFED MAC: {}",
+				sw.getId().toString(),
+				spoofedMac.toString());
+	}
+	
+	
+	
+	
+	
+	
+	// Método para agregar MACs originales a la base de datos
+    public void addOriginalMac(MacAddress originalMac) {
+        Long macHash = originalMac.getLong();
+        originalMacs.put(macHash, originalMac);
+    }
+
+    // Método para eliminar MACs originales de la base de datos (puedes usarlo si es necesario)
+    public void removeOriginalMac(MacAddress originalMac) {
+        Long macHash = originalMac.getLong();
+        originalMacs.remove(macHash);
+    }
+
+
+
 
 
 }
