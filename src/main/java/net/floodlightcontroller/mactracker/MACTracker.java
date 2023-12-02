@@ -179,8 +179,9 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         String flowName = "drop-rule-mac-spoofing";
         String switchDpid = sw.getId().toString();
         try {
-            String apiUrl = String.format("http://%s:%d/wm/staticflowentrypusher/json", CONTROLLER_IP, CONTROLLER_PORT);
-            String requestBody = String.format("{\"switch\": \"%s\", \"name\": \"%s\", \"eth_src\": \"%s\", \"actions\": \"drop\"}",switchDpid, flowName, spoofedMac);
+            String apiUrl = String.format("http://%s:%d/wm/staticflowpusher/json", CONTROLLER_IP, CONTROLLER_PORT);
+            String requestBody = String.format("{\"switch\": \"%s\", \"name\": \"%s\", \"eth_src\": \"%s\", \"actions\": \"drop\", \"idle_timeout\": %d}", switchDpid, flowName, spoofedMac, 60);
+
 
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
