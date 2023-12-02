@@ -91,6 +91,13 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         addOriginalMac(MacAddress.of("fa:16:3e:6c:ff:86")); //cliente2 ubuntu
 		addOriginalMac(MacAddress.of("fa:16:3e:39:16:d8")); //cliente3 kali
 
+        //servers
+        addOriginalMac(MacAddress.of("fa:16:3e:b3:ea:12")); //server1 auth
+        addOriginalMac(MacAddress.of("fa:16:3e:b4:8c:84")); //server2
+        addOriginalMac(MacAddress.of("fa:16:3e:24:ac:9f")); //server3
+
+        //gateway
+        addOriginalMac(MacAddress.of("fa:16:3e:81:14:f9")); //gateway hacia mi red interna
     }
 
     @Override
