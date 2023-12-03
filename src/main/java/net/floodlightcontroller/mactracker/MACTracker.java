@@ -17,7 +17,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
-import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.*;
 
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IOFMessageListener;
@@ -32,9 +32,6 @@ import net.floodlightcontroller.core.IFloodlightProviderService;
 
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.projectfloodlight.openflow.types.OFBufferId;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 public class MACTracker implements IOFMessageListener, IFloodlightModule  {
@@ -168,6 +165,11 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
             // Si coinciden, simplemente continúa sin hacer nada
             return Command.CONTINUE;
         }
+
+        if (eth.getEtherType() == EthType.LLDP ) {
+                // Si es un paquete LLDP o LACP, simplemente continúa sin hacer nada
+               return Command.CONTINUE;
+           }
 
 
 
