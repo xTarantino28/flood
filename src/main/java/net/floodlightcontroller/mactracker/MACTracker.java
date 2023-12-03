@@ -172,7 +172,8 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
            }
 
 
-
+        EthType etherType = eth.getEtherType();
+        logger.info("Received packet with EtherType: {}", etherType);
         //MAC SPOOFING DETECTION
 		Long sourceMACHash = eth.getSourceMACAddress().getLong();
         MacAddress originalMac = originalMacs.get(sourceMACHash);
