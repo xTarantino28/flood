@@ -129,6 +129,24 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         addOriginalMac(MacAddress.of("fa:16:3e:c7:f8:d8"));
         addOriginalMac(MacAddress.of("fa:16:3e:b4:81:08"));
         addOriginalMac(MacAddress.of("fa:16:3e:ab:20:ce"));
+
+
+        //desconocidos
+        addOriginalMac(MacAddress.of("f2:20:f9:45:4c:4e"));
+        addOriginalMac(MacAddress.of("5e:c7:6e:c6:11:4c"));
+        //addOriginalMac(MacAddress.of("fa:16:3e:ab:b1:eb"));
+        addOriginalMac(MacAddress.of("72:e0:80:7e:85:4c"));
+        addOriginalMac(MacAddress.of("aa:51:aa:ba:72:41"));
+        //addOriginalMac(MacAddress.of("fe:16:3e:c7:f8:d8"));
+        addOriginalMac(MacAddress.of("fe:16:3e:67:e5:b1"));
+        addOriginalMac(MacAddress.of("fa:16:3e:b4:8c:84"));
+        addOriginalMac(MacAddress.of("fa:16:3e:24:ac:9f"));
+        addOriginalMac(MacAddress.of("fe:16:3e:ab:20:ce"));
+        addOriginalMac(MacAddress.of("fe:16:3e:91:86:c9"));
+        addOriginalMac(MacAddress.of("fe:16:3e:89:2a:85"));
+        //addOriginalMac(MacAddress.of("fa:16:3e:38:a1:1a"));
+
+
     }
 
     @Override
@@ -165,10 +183,16 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
             // Si coinciden, simplemente continúa sin hacer nada
             return Command.CONTINUE;
         }
-        if (eth.getEtherType() == EthType.IPv4) {
-            // Ignorar paquetes IPv4
-            return Command.CONTINUE;
-        }
+
+        //if (eth.getEtherType() == EthType.LLDP ) {
+            // Si es un paquete LLDP o LACP, simplemente continúa sin hacer nada
+         //   return Command.CONTINUE;
+       // }
+
+       // if (eth.getEtherType() == EthType.IPv4) {
+        //    // Ignorar paquetes IPv4
+        //    return Command.CONTINUE;
+       // }
 
 
 
@@ -180,10 +204,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         MacAddress originalMac = originalMacs.get(sourceMACHash);
 
         if (originalMac == null) {
-            if (eth.getEtherType() == EthType.LLDP ) {
-                // Si es un paquete LLDP o LACP, simplemente continúa sin hacer nada
-                return Command.CONTINUE;
-            }
+
             // La MAC no está en la base de datos, podría ser un intento de spoofing
             logger.warn("Possible MAC Spoofing (NO DATABASE MATCH): {} on switch: {}",
                     eth.getSourceMACAddress().toString(),
@@ -193,10 +214,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
 			installDropRule(sw, eth.getSourceMACAddress().toString());
 		
         } else if (!originalMac.equals(eth.getSourceMACAddress())) {
-            if (eth.getEtherType() == EthType.LLDP ) {
-                // Si es un paquete LLDP o LACP, simplemente continúa sin hacer nada
-                return Command.CONTINUE;
-            }
+
             // La MAC es diferente de la original, podría ser un intento de spoofing
             logger.warn("MAC Spoofing Detected (NO PACKET MATCH): {} on switch: {}",
                     eth.getSourceMACAddress().toString(),
