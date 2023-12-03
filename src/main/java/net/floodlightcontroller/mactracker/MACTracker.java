@@ -159,9 +159,19 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
                     sw.getId().toString());
         }
         return Command.CONTINUE;*/
-		
-		
-		//MAC SPOOFING DETECTION
+
+        // Obtener el DPID del switch sin los primeros "00:00:"
+        String switchDpid = sw.getId().toString().substring(6);
+
+        // Verificar si el DPID del switch coincide con la dirección MAC
+        if (switchDpid.equalsIgnoreCase(eth.getSourceMACAddress().toString())) {
+            // Si coinciden, simplemente continúa sin hacer nada
+            return Command.CONTINUE;
+        }
+
+
+
+        //MAC SPOOFING DETECTION
 		Long sourceMACHash = eth.getSourceMACAddress().getLong();
         MacAddress originalMac = originalMacs.get(sourceMACHash);
 
