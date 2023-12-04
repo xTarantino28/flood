@@ -188,19 +188,19 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         MacAddress sourceMac = this.getSenderMac(eth);
         IPv4Address sourceIp = this.getSenderIp(eth);
 
-        if (log.isDebugEnabled()) {
-            log.debug("ARP received from switch {} *** in_port {} *** sender_mac={}" +
+        //if (log.isDebugEnabled()) {
+            log.info("ARP received from switch {} *** in_port {} *** sender_mac={}" +
                     " *** sender_ip={} ***", new Object[] {dpid, inPort, sourceMac.toString(),
                     sourceIp.toString()});
-        }
+        //}
 
         //Check if there is some device with that IP address
         Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(MacAddress.NONE, null, sourceIp, IPv6Address.NONE, DatapathId.NONE ,OFPort.ZERO);
         //if no -> don't do anything
         if (!devices.hasNext()){
-            if(log.isDebugEnabled()){
-                log.debug("THERE AREN'T DEVICES WITH THAT IP");
-            }
+           // if(log.isDebugEnabled()){
+                log.info("THERE AREN'T DEVICES WITH THAT IP");
+           // }
         }
 
         //A device with that IP has been found
@@ -208,19 +208,19 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
             Device device = (Device) devices.next();
             //check if the device is currently attached to the network
             if(device.getAttachmentPoints().length== 0){
-                if (log.isDebugEnabled()) {
-                    log.debug("IP IS CURRENTLY DISCONNECTED");
-                }
+               // if (log.isDebugEnabled()) {
+                    log.info("IP IS CURRENTLY DISCONNECTED");
+              //  }
                 return Command.CONTINUE;
             }
             String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
             Integer swPort = device.getAttachmentPoints()[0].getPort().getPortNumber();
             //Check if the ARP message comes from that device or not
             if (!((swId.equals(dpid)) && (swPort == inPort.getPortNumber()))){
-                if (log.isDebugEnabled()) {
-                    log.debug("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
+               // if (log.isDebugEnabled()) {
+                    log.info("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
                             " Device switch {} Device port {}", new Object[] {sourceIp.toString(), dpid, inPort, swId, swPort});
-                }
+               // }
                 //It's a fake AR message so install new flow entry in order to discard all these fake packets
                 this.dropFlowMod(sw, m);
 
