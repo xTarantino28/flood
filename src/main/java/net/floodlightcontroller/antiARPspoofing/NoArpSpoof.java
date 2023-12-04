@@ -121,12 +121,12 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         //}
 
         if (arp.getProtocolType() == ARP.PROTO_TYPE_IP) {
-            Inet4Address inet4Address = (Inet4Address) arp.getSenderProtocolAddress();
+            //Inet4Address inet4Address = (Inet4Address) arp.getSenderProtocolAddress();
 
-            byte[] senderIpBytes = inet4Address.getAddress();
+           // byte[] senderIpBytes = inet4Address.getAddress();
 
             // Reemplaza IPv4Address.of con el método adecuado según la implementación real de IPv4Address
-            return IPv4Address.of(senderIpBytes);
+            return arp.getSenderProtocolAddress();
         }
         return IPv4Address.NONE;
     }
@@ -140,10 +140,10 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         //    return MacAddress.of(arp.getSenderHardwareAddress());
         //}
         if (arp.getHardwareType() == ARP.HW_TYPE_ETHERNET) {
-            byte[] senderMacBytes = arp.getSenderHardwareAddress().getBytes();
-
+            //byte[] senderMacBytes = arp.getSenderHardwareAddress().getBytes();
+            //String senderMacString = arp.getSenderHardwareAddress();
             // Reemplaza MacAddress.of con el método adecuado según la implementación real de MacAddress
-            return MacAddress.of(senderMacBytes);
+            return arp.getSenderHardwareAddress();
         }
         return MacAddress.NONE;
     }

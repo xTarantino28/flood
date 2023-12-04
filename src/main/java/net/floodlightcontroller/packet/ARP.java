@@ -126,7 +126,7 @@ public class ARP extends BasePacket {
 	/**
 	 * @return the senderHardwareAddress
 	 */
-	public String getSenderHardwareAddress() {
+	public MacAddress getSenderHardwareAddress() {
 		return senderHardwareAddress;
 	}
 
@@ -141,7 +141,7 @@ public class ARP extends BasePacket {
 	/**
 	 * @return the senderProtocolAddress
 	 */
-	public Inet4Address getSenderProtocolAddress() {
+	public IPv4Address  getSenderProtocolAddress() {
 		return senderProtocolAddress;
 	}
 
