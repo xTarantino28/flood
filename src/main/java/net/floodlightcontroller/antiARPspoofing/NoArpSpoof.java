@@ -20,6 +20,7 @@ import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.devicemanager.IDevice;
 import net.floodlightcontroller.devicemanager.IDeviceService;
+import net.floodlightcontroller.devicemanager.SwitchPort;
 import net.floodlightcontroller.devicemanager.internal.Device;
 import net.floodlightcontroller.packet.ARP;
 import net.floodlightcontroller.packet.Ethernet;
@@ -213,7 +214,26 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
               //  }
                 return Command.CONTINUE;
             }
-            String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
+
+
+            // Obtiene todos los attachment points del dispositivo
+            for (SwitchPort switchPort : device.getAttachmentPoints()) {
+                String swId = switchPort.getSwitchDPID().toString();
+                Integer swPort = switchPort.getPort().getPortNumber();
+
+                // Verifica si el ARP proviene de este attachment point
+                if (!((swId.equals(dpid)) && (swPort == inPort.getPortNumber()))) {
+                    log.info("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
+                            " Device switch {} Device port {}", new Object[] {sourceIp.toString(), dpid, inPort, swId, swPort});
+                    // }
+                    //It's a fake AR message so install new flow entry in order to discard all these fake packets
+                    this.dropFlowMod(sw, m);
+
+                    return Command.STOP;
+                }
+            }
+
+            /*String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
             Integer swPort = device.getAttachmentPoints()[0].getPort().getPortNumber();
             //Check if the ARP message comes from that device or not
             if (!((swId.equals(dpid)) && (swPort == inPort.getPortNumber()))){
@@ -225,7 +245,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
                 this.dropFlowMod(sw, m);
 
                 return Command.STOP;
-            }
+            }*/
         }
 
         return Command.CONTINUE;
