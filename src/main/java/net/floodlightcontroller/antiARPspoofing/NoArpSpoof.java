@@ -84,7 +84,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
     //flow-mod defaults
     protected static short FLOWMOD_IDLE_TIMEOUT = 5; // in seconds
-    protected static short FLOWMOD_HARD_TIMEOUT = 0; // infinite
+    protected static short FLOWMOD_HARD_TIMEOUT = 10; // infinite
     protected static short FLOWMOD_PRIORITY = 100;
 
     // flow-mod - for use in the cookie
