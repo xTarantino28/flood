@@ -1,5 +1,7 @@
 package net.floodlightcontroller.antiARPspoofing;
 
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
  * MODULO DE AUTORIA DE Carlos Martin-Cleto Jimenez
  * EL REPOSITORIO DE REFERENCIA SE ENCUENTRA CITADO EN EL DOCUMENTO DEL PROYECTO SDN
  * REPOSITORIO PUBLICO PARA FINES EDUCATIVOS Y  DE LIBRE USO / CITACION
+ * MODIFICACIONES PROPIAS PARA EL RETORNO DE GETSENDERIP Y GETSENDERMAC
  * */
 
 /**
@@ -113,8 +116,17 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
      */
     public IPv4Address getSenderIp(Ethernet eth) {
         ARP arp = (ARP) eth.getPayload();
+        //if (arp.getProtocolType() == ARP.PROTO_TYPE_IP) {
+        //    return IPv4Address.of(arp.getSenderProtocolAddress()); //checar
+        //}
+
         if (arp.getProtocolType() == ARP.PROTO_TYPE_IP) {
-            return IPv4Address.of(arp.getSenderProtocolAddress()); //checar
+            Inet4Address inet4Address = (Inet4Address) arp.getSenderProtocolAddress();
+
+            byte[] senderIpBytes = inet4Address.getAddress();
+
+            // Reemplaza IPv4Address.of con el método adecuado según la implementación real de IPv4Address
+            return IPv4Address.of(senderIpBytes);
         }
         return IPv4Address.NONE;
     }
@@ -124,8 +136,14 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
      */
     public MacAddress getSenderMac(Ethernet eth) {
         ARP arp = (ARP) eth.getPayload();
+        //if (arp.getHardwareType() == ARP.HW_TYPE_ETHERNET) {
+        //    return MacAddress.of(arp.getSenderHardwareAddress());
+        //}
         if (arp.getHardwareType() == ARP.HW_TYPE_ETHERNET) {
-            return MacAddress.of(arp.getSenderHardwareAddress());
+            byte[] senderMacBytes = arp.getSenderHardwareAddress().getBytes();
+
+            // Reemplaza MacAddress.of con el método adecuado según la implementación real de MacAddress
+            return MacAddress.of(senderMacBytes);
         }
         return MacAddress.NONE;
     }
