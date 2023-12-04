@@ -196,7 +196,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         //}
 
         //Check if there is some device with that IP address
-        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(null, null, sourceIp,null, null ,null);
+        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(MacAddress.NONE, null, sourceIp, IPv6Address.NONE, DatapathId.NONE ,OFPort.ZERO);
         //if no -> don't do anything
         if (!devices.hasNext()){
            // if(log.isDebugEnabled()){
@@ -220,7 +220,8 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
             for (SwitchPort switchPort : device.getAttachmentPoints()) {
                 String swId = switchPort.getSwitchDPID().toString();
                 Integer swPort = switchPort.getPort().getPortNumber();
-
+                log.info("arp sender:  sender mac {}, sender_ip {}, inport {}", new Object[] {sourceMac,sourceIp,inPort.getPortNumber()} );
+                log.info("attachemnt point:  swId {}, swInPort {} ",swId,swPort);
                 // Verifica si el ARP proviene de este attachment point
                 if (!((swId.equals(dpid)) && (swPort == inPort.getPortNumber()))) {
                     log.info("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
