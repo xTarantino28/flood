@@ -217,7 +217,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
 
             // Obtiene todos los attachment points del dispositivo
-            for (SwitchPort switchPort : device.getAttachmentPoints()) {
+            /*for (SwitchPort switchPort : device.getAttachmentPoints()) {
                 String swId = switchPort.getSwitchDPID().toString();
                 Integer swPort = switchPort.getPort().getPortNumber();
                 log.info("arp sender:  sender mac {}, sender_ip {}, inport {}", new Object[] {sourceMac,sourceIp,inPort.getPortNumber()} );
@@ -232,9 +232,10 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
                     return Command.STOP;
                 }
-            }
+            }*/
 
-            /*String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
+
+            String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
             Integer swPort = device.getAttachmentPoints()[0].getPort().getPortNumber();
             //Check if the ARP message comes from that device or not
             if (!((swId.equals(dpid)) && (swPort == inPort.getPortNumber()))){
@@ -246,7 +247,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
                 this.dropFlowMod(sw, m);
 
                 return Command.STOP;
-            }*/
+            }
         }
 
         return Command.CONTINUE;
