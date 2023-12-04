@@ -217,6 +217,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
             for (SwitchPort switchPort : device.getAttachmentPoints()) {
                 log.info("AttachmentPoint: switch {} port {}", switchPort.getSwitchDPID(), switchPort.getPort().getPortNumber());
+                log.info("MAC from device: {}", device.getMACAddress());
             }
 
 
