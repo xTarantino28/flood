@@ -33,11 +33,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.IPv4Address;
-import org.projectfloodlight.openflow.types.MacAddress;
-import org.projectfloodlight.openflow.types.OFBufferId;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.U64;
+import org.projectfloodlight.openflow.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,7 +195,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         }
 
         //Check if there is some device with that IP address
-        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(null, null, sourceIp, null, null,null);
+        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(MacAddress.NONE, null, sourceIp, IPv6Address.NONE, DatapathId.NONE ,OFPort.ZERO);
         //if no -> don't do anything
         if (!devices.hasNext()){
             if(log.isDebugEnabled()){
