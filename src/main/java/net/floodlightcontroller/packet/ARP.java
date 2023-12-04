@@ -17,6 +17,7 @@
 
 package net.floodlightcontroller.packet;
 
+import java.net.Inet4Address;
 import java.nio.ByteBuffer;
 
 import org.projectfloodlight.openflow.types.ArpOpcode;
@@ -125,7 +126,7 @@ public class ARP extends BasePacket {
 	/**
 	 * @return the senderHardwareAddress
 	 */
-	public MacAddress getSenderHardwareAddress() {
+	public String getSenderHardwareAddress() {
 		return senderHardwareAddress;
 	}
 
@@ -140,7 +141,7 @@ public class ARP extends BasePacket {
 	/**
 	 * @return the senderProtocolAddress
 	 */
-	public IPv4Address getSenderProtocolAddress() {
+	public Inet4Address getSenderProtocolAddress() {
 		return senderProtocolAddress;
 	}
 

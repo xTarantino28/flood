@@ -83,7 +83,36 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
         macAddresses = new ConcurrentSkipListSet<Long>();
         logger = LoggerFactory.getLogger(MACTracker.class);
-		// Agregar MACs originales hardcoded al HashMap en el método init
+
+        addOriginalMac(MacAddress.of("aa:51:aa:ba:72:41"));
+        addOriginalMac(MacAddress.of("fa:16:3e:ab:b1:eb"));
+        addOriginalMac(MacAddress.of("f2:20:f9:45:4c:4e"));
+        addOriginalMac(MacAddress.of("72:e0:80:7e:85:4c"));
+        addOriginalMac(MacAddress.of("5e:c7:6e:c6:11:4c"));
+        addOriginalMac(MacAddress.of("fa:16:3e:5c:73:86"));
+        addOriginalMac(MacAddress.of("fa:16:3e:0e:de:a4"));
+        addOriginalMac(MacAddress.of("fa:16:3e:39:16:d8"));
+        addOriginalMac(MacAddress.of("fa:16:3e:6c:ff:86"));
+        addOriginalMac(MacAddress.of("fe:16:3e:0c:d2:31"));
+        addOriginalMac(MacAddress.of("fa:16:3e:ad:b3:df"));
+        addOriginalMac(MacAddress.of("fe:16:3e:b4:81:08"));
+        addOriginalMac(MacAddress.of("fe:16:3e:96:3a:1d"));
+        addOriginalMac(MacAddress.of("fa:16:3e:b3:ea:12"));
+        addOriginalMac(MacAddress.of("fe:16:3e:c7:f8:d8"));
+        addOriginalMac(MacAddress.of("fe:16:3e:67:e5:b1"));
+        addOriginalMac(MacAddress.of("fa:16:3e:b4:8c:84"));
+        addOriginalMac(MacAddress.of("fa:16:3e:24:ac:9f"));
+        addOriginalMac(MacAddress.of("fe:16:3e:91:86:c9"));
+        addOriginalMac(MacAddress.of("fe:16:3e:ab:20:ce"));
+        addOriginalMac(MacAddress.of("fa:16:3e:38:a1:1a"));
+        addOriginalMac(MacAddress.of("fe:16:3e:e9:81:e6"));
+        addOriginalMac(MacAddress.of("fe:16:3e:a7:6d:d9"));
+        addOriginalMac(MacAddress.of("fe:16:3e:89:2a:85"));
+
+
+
+        /*
+        // Agregar MACs originales hardcoded al HashMap en el método init
         addOriginalMac(MacAddress.of("fa:16:3e:5c:73:86")); //cliente1 ubuntu
         addOriginalMac(MacAddress.of("fa:16:3e:6c:ff:86")); //cliente2 ubuntu
 		addOriginalMac(MacAddress.of("fa:16:3e:39:16:d8")); //cliente3 kali
@@ -147,6 +176,8 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         //addOriginalMac(MacAddress.of("fa:16:3e:38:a1:1a"));
         addOriginalMac(MacAddress.of("fe:16:3e:a7:6d:d9"));
 
+        // fe:16:3e:e9:81:e6   falta colocar esta nueva
+        addOriginalMac(MacAddress.of("fe:16:3e:e9:81:e6"));*/
     }
 
     @Override
@@ -165,7 +196,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
         Ethernet eth =
                 IFloodlightProviderService.bcStore.get(cntx,
                         IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
-		/* ORIGINAL MACTRACKER CODE
+		//ORIGINAL MACTRACKER CODE
         Long sourceMACHash = eth.getSourceMACAddress().getLong();
         if (!macAddresses.contains(sourceMACHash)) {
             macAddresses.add(sourceMACHash);
@@ -173,8 +204,10 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
                     eth.getSourceMACAddress().toString(),
                     sw.getId().toString());
         }
-        return Command.CONTINUE;*/
+        return Command.CONTINUE;
 
+
+        /*
         // Obtener el DPID del switch sin los primeros "00:00:"
         String switchDpid = sw.getId().toString().substring(6);
 
@@ -224,7 +257,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule  {
 			installDropRule(sw, eth.getSourceMACAddress().toString());
         }
 
-        return Command.CONTINUE;
+        return Command.CONTINUE;*/
     }
 
 
