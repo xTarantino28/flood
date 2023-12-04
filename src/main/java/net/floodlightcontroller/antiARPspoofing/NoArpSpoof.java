@@ -196,7 +196,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         //}
 
         //Check if there is some device with that IP address
-        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(MacAddress.NONE, null, sourceIp, IPv6Address.NONE, DatapathId.NONE ,OFPort.ZERO);
+        Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(null, null, sourceIp,null, null ,null);
         //if no -> don't do anything
         if (!devices.hasNext()){
            // if(log.isDebugEnabled()){
