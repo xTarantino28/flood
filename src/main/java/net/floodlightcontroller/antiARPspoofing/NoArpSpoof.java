@@ -90,6 +90,12 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
     public static final int APP_ID_SHIFT = (64 - APP_ID_BITS);
     public static final long NO_ARP_SPOOF_COOKIE = (long) (NO_ARP_SPOOF_APP_ID & ((1 << APP_ID_BITS) - 1)) << APP_ID_SHIFT;
 
+    long startTime;
+    long endTime;
+
+    long endTimeMitigacion;
+
+    long elapsedTime;
 
     private List<NetworkDeviceInfo> networkDeviceInfoList  = new ArrayList<>();
     private static class NetworkDeviceInfo {
@@ -211,6 +217,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         if (!(eth.getPayload() instanceof ARP)){
             return Command.CONTINUE;
         }
+        startTime = System.currentTimeMillis();
 
         Match m = pi.getMatch();
         OFPort inPort = (pi.getVersion().compareTo(OFVersion.OF_12) < 0 ? pi.getInPort() : m.get(MatchField.IN_PORT));
@@ -234,16 +241,19 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         if (sourceDeviceInfo != null) {
             if (!((sourceDeviceInfo.getSwitchId().equals(dpid)) && (sourceDeviceInfo.getPort() == inPort.getPortNumber()))){
                 // if (log.isDebugEnabled()) {
-
+                endTime = System.currentTimeMillis();
                 log.info("Original device *** MAC {} *** IP {} *** switch {} *** inport {} ", new Object[] {sourceDeviceInfo.getMacAddress(), sourceDeviceInfo.getIpAddress(), sourceDeviceInfo.getSwitchId(),
                         sourceDeviceInfo.getPort()});
-
                 log.info("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
                         " Device switch {} Device port {}", new Object[] {sourceIp.toString(), dpid, inPort, sourceDeviceInfo.getSwitchId(), sourceDeviceInfo.getPort()});
                 // }
+                long elapsedTimeDetection = endTime - startTime;
+                log.info("Tiempo de deteccion arp spoofing: {} ms",elapsedTimeDetection);
                 //It's a fake AR message so install new flow entry in order to discard all these fake packets
                 this.dropFlowMod(sw, m);
-
+                endTimeMitigacion = System.currentTimeMillis();
+                long elapsedmitigacion = endTimeMitigacion - startTime;
+                log.info("Tiempo de mitigacion arp spoofing: {} ms",elapsedmitigacion);
                 return Command.STOP;
             }
         } else {
