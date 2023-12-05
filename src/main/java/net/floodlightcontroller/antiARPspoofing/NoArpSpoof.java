@@ -2,11 +2,7 @@ package net.floodlightcontroller.antiARPspoofing;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 import net.floodlightcontroller.core.FloodlightContext;
@@ -93,6 +89,39 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
     public static final int APP_ID_BITS = 12;
     public static final int APP_ID_SHIFT = (64 - APP_ID_BITS);
     public static final long NO_ARP_SPOOF_COOKIE = (long) (NO_ARP_SPOOF_APP_ID & ((1 << APP_ID_BITS) - 1)) << APP_ID_SHIFT;
+
+
+    private List<NetworkDeviceInfo> networkDeviceInfoList  = new ArrayList<>();
+    private static class NetworkDeviceInfo {
+        private String macAddress;
+        private String ipAddress;
+        private String switchId;
+        private int port;
+
+        public NetworkDeviceInfo(String macAddress, String ipAddress, String switchId, int port) {
+            this.macAddress = macAddress;
+            this.ipAddress = ipAddress;
+            this.switchId = switchId;
+            this.port = port;
+        }
+
+        public String getMacAddress() {
+            return macAddress;
+        }
+
+        public String getIpAddress() {
+            return ipAddress;
+        }
+
+        public String getSwitchId() {
+            return switchId;
+        }
+
+        public int getPort() {
+            return port;
+        }
+    }
+
 
 
     /**
@@ -189,20 +218,52 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         MacAddress sourceMac = this.getSenderMac(eth);
         IPv4Address sourceIp = this.getSenderIp(eth);
 
+
+        if (sourceIp.toString().startsWith("192.168")) {
+            return Command.CONTINUE;
+        }
         //if (log.isDebugEnabled()) {
             log.info("ARP received from switch {} *** in_port {} *** sender_mac={}" +
                     " *** sender_ip={} ***", new Object[] {dpid, inPort, sourceMac.toString(),
                     sourceIp.toString()});
         //}
 
+
+        // Buscar información del dispositivo en el registro local por IP
+        NetworkDeviceInfo sourceDeviceInfo = getDeviceInfoByIp(sourceIp);
+        if (sourceDeviceInfo != null) {
+            if (!((sourceDeviceInfo.getSwitchId().equals(dpid)) && (sourceDeviceInfo.getPort() == inPort.getPortNumber()))){
+                // if (log.isDebugEnabled()) {
+
+                log.info("Original device *** MAC {} *** IP {} *** switch {} *** inport {} ", new Object[] {sourceDeviceInfo.getMacAddress(), sourceDeviceInfo.getIpAddress(), sourceDeviceInfo.getSwitchId(),
+                        sourceDeviceInfo.getPort()});
+
+                log.info("FAKE ARP MESSAGE!!!!! IP {} ARP message switch {} ARP message port {}" +
+                        " Device switch {} Device port {}", new Object[] {sourceIp.toString(), dpid, inPort, sourceDeviceInfo.getSwitchId(), sourceDeviceInfo.getPort()});
+                // }
+                //It's a fake AR message so install new flow entry in order to discard all these fake packets
+                this.dropFlowMod(sw, m);
+
+                return Command.STOP;
+            }
+        } else {
+            log.info("DeviceInfo not found for IP {}. Allowing the message to continue.", sourceIp.toString());
+        }
+
+
+        /*
         //Check if there is some device with that IP address
         Iterator<? extends IDevice> devices = deviceManagerService.queryDevices(MacAddress.NONE, null, sourceIp, IPv6Address.NONE, DatapathId.NONE ,OFPort.ZERO);
         //if no -> don't do anything
+
+
         if (!devices.hasNext()){
            // if(log.isDebugEnabled()){
                 log.info("THERE AREN'T DEVICES WITH THAT IP");
            // }
         }
+
+
 
         //A device with that IP has been found
         while(devices.hasNext()) {
@@ -237,7 +298,7 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
                     return Command.STOP;
                 }
-            }*/
+            }
 
 
             String swId= device.getAttachmentPoints()[0].getSwitchDPID().toString();
@@ -256,10 +317,22 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
 
                 return Command.STOP;
             }
-        }
+        }*/
 
         return Command.CONTINUE;
     }
+
+    private NetworkDeviceInfo getDeviceInfoByIp(IPv4Address ip) {
+        for (NetworkDeviceInfo deviceInfo : networkDeviceInfoList) {
+            if (deviceInfo.getIpAddress().equals(ip.toString())) {
+                return deviceInfo;
+            }
+        }
+        return null;
+    }
+
+
+
 
     //IOFMessageListener implementation
     @Override
@@ -312,6 +385,13 @@ public class NoArpSpoof implements IFloodlightModule, IOFMessageListener {
         deviceManagerService = context.getServiceImpl(IDeviceService.class);
         switchService = context.getServiceImpl(IOFSwitchService.class);
 
+
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:5c:73:86", "10.0.0.1", "00:00:f2:20:f9:45:4c:4e", 4));
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:6c:ff:86", "10.0.0.2", "00:00:f2:20:f9:45:4c:4e", 5));
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:39:16:d8", "10.0.0.3", "00:00:f2:20:f9:45:4c:4e", 6));
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:b3:ea:12", "10.0.0.21", "00:00:aa:51:aa:ba:72:41", 4));
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:b4:8c:84", "10.0.0.22", "00:00:aa:51:aa:ba:72:41", 5));
+        networkDeviceInfoList.add(new NetworkDeviceInfo("fa:16:3e:24:ac:9f", "10.0.0.23", "00:00:aa:51:aa:ba:72:41", 6));
     }
 
     @Override
